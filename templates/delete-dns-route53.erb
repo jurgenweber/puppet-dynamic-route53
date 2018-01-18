@@ -10,8 +10,10 @@ if [ "$(id -u)" != "0" ]; then
 fi
 
 # AWS Credentials
-export AWS_ACCESS_KEY_ID=<%= scope.lookupvar('dynamicroute53::aws_access_id') %>
-export AWS_SECRET_ACCESS_KEY=<%= scope.lookupvar('dynamicroute53::aws_secret_key') %>
+AWS_ACCESS_KEY_ID=<%= scope.lookupvar('dynamicroute53::aws_access_id') %>
+AWS_SECRET_ACCESS_KEY=<%= scope.lookupvar('dynamicroute53::aws_secret_key') %>
+export AWS_ACCESS_KEY_ID
+export AWS_SECRET_ACCESS_KEY
 
 # Get our Instance ID, local IP, and EC2 Public Hostname using cloud-utils ec2metadata
 INSTANCE_ID=$(/usr/bin/ec2metadata --instance-id)
@@ -21,10 +23,11 @@ PUBLIC_HOSTNAME=$(/usr/bin/ec2metadata --public-hostname)
 HOSTED_ZONE_ID=<%= scope.lookupvar('dynamicroute53::hosted_zone_id') %>
 DOMAIN=<%= scope.lookupvar('dynamicroute53::domain') %>
 TTL=<%= scope.lookupvar('dynamicroute53::ttl') %>
+REGION=<%= scope.lookupvar('dynamicroute53::region') %>
 
 # Get our desired hostname from the "Name" tag on our instance
 HOSTNAME=$(/usr/local/bin/aws ec2 describe-tags \
-  --region "ap-northeast-1" \
+  --region "${REGION}" \
   --output "text" \
   --filters "Name=resource-type,Values=instance" \
             "Name=resource-id,Values=${INSTANCE_ID}" \
@@ -40,11 +43,11 @@ IPV4_ADDRESS=$(/usr/bin/host ${HOSTNAME}.${DOMAIN} | awk '{print $4}')
 <% if scope.lookupvar('dynamicroute53::private_dns') %>
 # Set an A record with the local IP
 
-/usr/local/bin/aws route53 change-resource-record-sets --region ap-northeast-1 --hosted-zone-id ${HOSTED_ZONE_ID} \
+/usr/local/bin/aws route53 change-resource-record-sets --region "${REGION}" --hosted-zone-id ${HOSTED_ZONE_ID} \
   --change-batch "{\"Comment\": \"string\",\"Changes\": [{\"Action\": \"DELETE\",\"ResourceRecordSet\": {\"Name\": \"${HOSTNAME}.${DOMAIN}\",\"Type\": \"A\",\"TTL\": ${TTL},\"ResourceRecords\": [{\"Value\": \"${IPV4_ADDRESS}\"}]}}]}"
 <% else %>
 # Set a CNAME record with the public hostname
 
-/usr/local/bin/aws route53 change-resource-record-sets --region ap-northeast-1 --hosted-zone-id ${HOSTED_ZONE_ID} \
+/usr/local/bin/aws route53 change-resource-record-sets --region "${REGION}" --hosted-zone-id ${HOSTED_ZONE_ID} \
   --change-batch "{\"Comment\": \"string\",\"Changes\": [{\"Action\": \"DELETE\",\"ResourceRecordSet\": {\"Name\": \"${HOSTNAME}.${DOMAIN}\",\"Type\": \"CNAME\",\"TTL\": ${TTL},\"ResourceRecords\": [{\"Value\": \"${PUBLIC_HOSTNAME}\"}]}}]}"
 <% end %>
