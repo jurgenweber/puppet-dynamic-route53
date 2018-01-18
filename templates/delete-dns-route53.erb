@@ -32,7 +32,7 @@ HOSTNAME=$(/usr/local/bin/aws ec2 describe-tags \
   --filters "Name=resource-type,Values=instance" \
             "Name=resource-id,Values=${INSTANCE_ID}" \
             "Name=key,Values=Name" \
-            | awk '{print $5}' | cut -d '.' -f1,2,3)
+            | awk '{print $5}' | cut -d '.' -f1)
 
 # Use whatever IP is currently resolving in-case a record is left over.
 IPV4_ADDRESS=$(/usr/bin/host ${HOSTNAME}.${DOMAIN} | awk '{print $4}')
