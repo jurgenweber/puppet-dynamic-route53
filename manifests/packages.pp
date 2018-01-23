@@ -14,13 +14,15 @@ class dynamicroute53::packages {
     }
   }
 
+  $requirements = $::operatingsystem ? {
+    'CentOS' => [ Package['python-pip'], File['/usr/bin/pip-python'] ],
+    default  => Package['python-pip'],
+  }
+
   package { 'awscli':
     ensure   => installed,
     provider => pip,
-    require  => [
-      Package['python-pip'],
-      $::operatingsystem ? { 'CentOS' => File['/usr/bin/pip-python'], default => undef },
-    ]
+    require  => $requirements,
   }
 
   package { 'cloud-utils':
