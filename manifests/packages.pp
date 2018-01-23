@@ -12,6 +12,11 @@ class dynamicroute53::packages {
       require  => Package['python-pip'],
       target   => '/usr/bin/pip',
     }
+    file { '/usr/local/bin/aws':
+      ensure   => link,
+      require  => Package['awscli'],
+      target   => '/usr/bin/aws',
+    }
   }
 
   $requirements = $::operatingsystem ? {
