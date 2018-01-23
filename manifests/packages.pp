@@ -7,7 +7,7 @@ class dynamicroute53::packages {
   }
 
   if ($::operatingsystem == 'CentOS') {
-    file { '/usr/bin/python-pip':
+    file { '/usr/bin/pip-python':
       ensure   => link,
       require  => Package['python-pip'],
       target   => '/usr/bin/pip',
@@ -19,7 +19,7 @@ class dynamicroute53::packages {
     provider => pip,
     require  => [
       Package['python-pip'],
-      $::operatingsystem ? { 'CentOS' => File['/usr/bin/python-pip'], default => undef },
+      $::operatingsystem ? { 'CentOS' => File['/usr/bin/pip-python'], default => undef },
     ]
   }
 
